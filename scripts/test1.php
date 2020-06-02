@@ -1,3 +1,3 @@
 <?php
 
-echo "Hello World, this is {test0} with HNGi7 ID {test1} for stage 2 task";
+print('Hello World, this is test with HNGi7 ID test using test for stage 2 task');

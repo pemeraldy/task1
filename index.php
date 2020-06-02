@@ -11,7 +11,10 @@ function runScripts($path, &$data)
             $command .= 'php ' . $path;
             break;
         case 'py':
-            $command .= 'python ' . $path;
+            $command .= 'python3 ' . $path;
+            break;
+        case 'js':
+            $command .= 'node ' . $path;
             break;
         default:
             break;
@@ -34,10 +37,10 @@ function runScripts($path, &$data)
 
 function testOutput($output)
 {
-    $pattern = "/Hello World, this is .* with HNGi7 ID .* for stage 2 task/";
+    $pattern = "/Hello World, this is .* with HNGi7 ID .* using .* for stage 2 task/";
 
     if (preg_match($pattern, $output[0])) {
-        return "passed";
+        return "Passed";
     }
     return "Failed";
 }
