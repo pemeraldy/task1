@@ -1,6 +1,6 @@
 <?php
 
-function runScripts($path, &$data)
+function getCommand($path)
 {
     $fileType = pathinfo($path, PATHINFO_EXTENSION);
 
@@ -19,19 +19,50 @@ function runScripts($path, &$data)
         default:
             break;
     }
-    
-    $output = [];
-    $return_val = '';
 
-    exec($command, $output, $return_val);
+    return $command;
+}
 
-    if ($return_val == 0) {
-        $result = testOutput($output);
-        $temp = [
-            'command' => $command,
-            'result' => $result
-        ];
+function runScripts($script_paths, $display)
+{
+    if ($display == 'html') {
+        echo '<h1>Task1</h1>';
+    }
+
+
+    $data = array();
+
+    foreach ($script_paths as $script_path) {
+        $temp = array();
+        $temp['HNGID'] = strtoupper(pathinfo($script_path, PATHINFO_FILENAME));
+        $temp['Command'] = getCommand($script_path);
+
         $data[] = $temp;
+    }
+    
+    foreach ($data as &$script) {
+        $output = [];
+        $return_val = '';
+
+        exec($script['Command'], $output, $return_val);
+
+        if ($return_val == 0) {
+            $script['Comment'] = $output[0];
+            $script['Result'] = testOutput($output);
+        } else {
+            $script['Comment'] = '*** unable to run the script submitted ***';
+            $script['Result'] = 'ERROR';
+        }
+
+        if ($display == 'html') {
+            flushHTMLOut($script);
+        }
+    }
+
+    if ($display == 'json') {
+        $json = json_encode($data, true);
+        header('Content-Type: application/json');
+        echo $json;
     }
 }
 
@@ -45,26 +76,28 @@ function testOutput($output)
     return "Failed";
 }
 
-// Start of script
-
-$scripts = scandir('./scripts');
-
-foreach ($scripts as $script) {
-    if (! in_array($script, ['.', '..'])) {
-        runScripts('./scripts/' . $script, $data);
-    }
+function flushHTMLOut($script)
+{
+        echo '<p>"HNGID": '.$script['HNGID'].',  "Comment": '. $script['Comment'].',  "Status":'.$script['Result'].'</p>';
+        ob_flush();
+        flush();
+        sleep(1);
 }
+
+
+//
+// Start of script
+//
 
 $display = $_SERVER['QUERY_STRING'] ?? 'html';
 $display = $display == 'json' ? 'json' : 'html';
 
-if ($display == 'html') {
-    echo '<h1>Task1</h1>';
-    foreach ($data as $row) {
-        echo '<p>"' . $row['command'] . '": ' . $row['result'] . '</p>';
+$script_paths = array();
+
+foreach (scandir('./scripts') as $script) {
+    if (! in_array($script, ['.', '..'])) {
+        $script_paths[] = './scripts/' . $script;
     }
-} elseif ($display == 'json') {
-    $json = json_encode($data);
-    header('Content-Type: application/json');
-    echo $json;
 }
+
+runScripts($script_paths, $display);
