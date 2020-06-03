@@ -49,6 +49,9 @@ function runScripts($script_paths, $display)
         if ($return_val == 0) {
             $script['Comment'] = $output[0];
             $script['Result'] = testOutput($output);
+        } else {
+            $script['Comment'] = '*** unable to run the script submitted ***';
+            $script['Result'] = 'ERROR';
         }
 
         if ($display == 'html') {
